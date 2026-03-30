@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Build, Commit & Push to UAT",
+  "description": "After the agent finishes working, it will check for TypeScript errors, fix any warnings, then commit and push all changes to the uat branch automatically.",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before finishing, do the following steps:\n1. Run `npx tsc --noEmit` to check for TypeScript errors. If there are errors, fix them.\n2. Run `getDiagnostics` on any files you changed to check for warnings. Fix any issues found.\n3. Stage all changes with `git add -A`\n4. Commit with a short descriptive message about what was changed\n5. Push to the uat branch with `git push origin uat`\nDo NOT ask the user for confirmation — just do it silently."
+  }
+}
