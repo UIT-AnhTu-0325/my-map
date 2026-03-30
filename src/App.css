@@ -23,12 +23,28 @@
   transition: all 0.2s;
 }
 .nav-links a.active, .nav-links a:hover { color: #fff; background: #16213e; }
+.nav-btn {
+  background: none; border: 1px solid #555; color: #aaa; padding: 0.3rem 0.8rem;
+  border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
+}
+.nav-btn:hover { color: #fff; border-color: #fff; }
+.error-text { color: #e74c3c; font-size: 0.85rem; margin: 0; }
 
 /* Map */
 .map-page { padding-top: 50px; height: 100vh; }
 .map-container { height: calc(100vh - 50px); width: 100%; }
 .sold-marker { filter: hue-rotate(120deg) saturate(0.5); }
-.loading-bar { position: absolute; top: 50px; left: 0; right: 0; text-align: center; padding: 0.4rem; background: #4361ee; color: #fff; z-index: 999; font-size: 0.85rem; }
+.loading-bar {
+  position: absolute; top: 50px; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #4361ee 0%, #4361ee 30%, transparent 30%);
+  background-size: 200% 100%;
+  animation: loading-slide 1s ease-in-out infinite;
+  z-index: 999;
+}
+@keyframes loading-slide {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
 
 /* Modal */
 .modal-overlay {
@@ -43,7 +59,7 @@
 .coords { color: #888; font-size: 0.85rem; margin: 0 0 1rem; }
 .modal form { display: flex; flex-direction: column; gap: 0.8rem; }
 .modal label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; font-weight: 500; }
-.modal input, .modal textarea {
+.modal input, .modal textarea, .modal select {
   padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem;
 }
 .image-preview { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; }
@@ -68,6 +84,15 @@
 .location-popup h3 { margin: 0 0 0.3rem; font-size: 1rem; }
 .location-popup .price { font-weight: 700; color: #4361ee; margin: 0 0 0.3rem; }
 .popup-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+.popup-links { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
+.link-btn {
+  display: inline-block; font-size: 0.75rem; padding: 0.3rem 0.5rem;
+  border-radius: 4px; text-decoration: none; color: #fff; cursor: pointer;
+}
+.link-btn.tiktok { background: #010101; }
+.link-btn.tiktok:hover { background: #333; }
+.link-btn.gmaps { background: #4285f4; }
+.link-btn.gmaps:hover { background: #3367d6; }
 .popup-actions button { font-size: 0.75rem; padding: 0.3rem 0.5rem; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: #f8f8f8; color: #333; }
 .popup-actions .btn-danger { background: #e74c3c; color: #fff; border-color: #e74c3c; }
 .popup-actions .btn-danger:hover { background: #c0392b; }

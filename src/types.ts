@@ -6,6 +6,7 @@ export interface Location {
   description: string;
   price: number;
   imageUrl: string;
+  tiktokUrl: string;
   status: 'selling' | 'sold';
   createdAt: string;
 }

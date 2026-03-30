@@ -4,16 +4,21 @@ import type { Location } from '../types';
 interface Props {
   lat: number;
   lng: number;
-  onSave: (location: Omit<Location, 'id'>) => void;
+  existing?: Location;
+  onSave: (data: Omit<Location, 'id'>) => void;
   onCancel: () => void;
 }
 
-export default function AddLocationModal({ lat, lng, onSave, onCancel }: Props) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+export default function LocationModal({ lat, lng, existing, onSave, onCancel }: Props) {
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [description, setDescription] = useState(existing?.description ?? '');
+  const [price, setPrice] = useState(existing ? String(existing.price) : '');
+  const [imageUrl, setImageUrl] = useState(existing?.imageUrl ?? '');
+  const [tiktokUrl, setTiktokUrl] = useState(existing?.tiktokUrl ?? '');
+  const [status, setStatus] = useState(existing?.status ?? 'selling');
   const [saving, setSaving] = useState(false);
+
+  const isEdit = !!existing;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,8 +39,9 @@ export default function AddLocationModal({ lat, lng, onSave, onCancel }: Props) 
       description,
       price: parseFloat(price),
       imageUrl,
-      status: 'selling',
-      createdAt: new Date().toISOString(),
+      tiktokUrl,
+      status,
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
     });
     setSaving(false);
   };
@@ -43,7 +49,7 @@ export default function AddLocationModal({ lat, lng, onSave, onCancel }: Props) 
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Add Location</h2>
+        <h2>{isEdit ? 'Edit Location' : 'Add Location'}</h2>
         <p className="coords">📍 {lat.toFixed(5)}, {lng.toFixed(5)}</p>
         <form onSubmit={handleSubmit}>
           <label>
@@ -63,9 +69,22 @@ export default function AddLocationModal({ lat, lng, onSave, onCancel }: Props) 
             <input type="file" accept="image/*" onChange={handleImageUpload} />
           </label>
           {imageUrl && <img src={imageUrl} alt="Preview" className="image-preview" />}
+          <label>
+            TikTok Link
+            <input value={tiktokUrl} onChange={e => setTiktokUrl(e.target.value)} placeholder="https://www.tiktok.com/..." />
+          </label>
+          {isEdit && (
+            <label>
+              Status
+              <select value={status} onChange={e => setStatus(e.target.value as 'selling' | 'sold')}>
+                <option value="selling">Selling</option>
+                <option value="sold">Sold</option>
+              </select>
+            </label>
+          )}
           <div className="modal-actions">
             <button type="button" onClick={onCancel} className="btn-secondary" disabled={saving}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+            <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : isEdit ? 'Update' : 'Save'}</button>
           </div>
         </form>
       </div>

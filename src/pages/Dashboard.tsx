@@ -1,11 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Location } from '../types';
 import { getLocations, updateLocation, deleteLocation } from '../store';
+import { useAuth } from '../AuthContext';
+import { formatPrice } from '../utils';
+import LocationModal from '../components/LocationModal';
 
 export default function Dashboard() {
+  const { loggedIn } = useAuth();
+  const masked = !loggedIn;
+
   const [locations, setLocations] = useState<Location[]>([]);
   const [filter, setFilter] = useState<'all' | 'selling' | 'sold'>('all');
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<Location | null>(null);
 
   const refresh = useCallback(async () => {
     const data = await getLocations();
@@ -35,6 +42,13 @@ export default function Dashboard() {
     await refresh();
   };
 
+  const handleEdit = async (data: Omit<Location, 'id'>) => {
+    if (!editing) return;
+    await updateLocation(editing.id, data);
+    await refresh();
+    setEditing(null);
+  };
+
   return (
     <div className="dashboard">
       <h1>Dashboard</h1>
@@ -48,16 +62,16 @@ export default function Dashboard() {
             <div className="stat-card selling">
               <span className="stat-label">Selling</span>
               <span className="stat-value">{selling.length}</span>
-              <span className="stat-sub">${totalListing.toFixed(2)}</span>
+              <span className="stat-sub">{formatPrice(totalListing, masked)}</span>
             </div>
             <div className="stat-card sold">
               <span className="stat-label">Sold</span>
               <span className="stat-value">{sold.length}</span>
-              <span className="stat-sub">${totalRevenue.toFixed(2)}</span>
+              <span className="stat-sub">{formatPrice(totalRevenue, masked)}</span>
             </div>
             <div className="stat-card revenue">
               <span className="stat-label">Revenue</span>
-              <span className="stat-value">${totalRevenue.toFixed(2)}</span>
+              <span className="stat-value">{formatPrice(totalRevenue, masked)}</span>
             </div>
           </div>
 
@@ -76,20 +90,38 @@ export default function Dashboard() {
                 {loc.imageUrl && <img src={loc.imageUrl} alt={loc.title} />}
                 <div className="item-info">
                   <h3>{loc.title}</h3>
-                  <p className="price">${loc.price.toFixed(2)}</p>
+                  <p className="price">{formatPrice(loc.price, masked)}</p>
                   {loc.description && <p className="desc">{loc.description}</p>}
                   <span className={`status-badge ${loc.status}`}>{loc.status}</span>
+                  <div className="popup-links">
+                    {loc.tiktokUrl && (
+                      <a href={loc.tiktokUrl} target="_blank" rel="noopener noreferrer" className="link-btn tiktok">🎵 TikTok</a>
+                    )}
+                    <a href={`https://www.google.com/maps?q=${loc.lat},${loc.lng}`} target="_blank" rel="noopener noreferrer" className="link-btn gmaps">🗺️ Google Maps</a>
+                  </div>
                 </div>
-                <div className="item-actions">
-                  <button onClick={() => handleToggle(loc.id)}>
-                    {loc.status === 'selling' ? 'Mark Sold' : 'Mark Selling'}
-                  </button>
-                  <button className="btn-danger" onClick={() => handleDelete(loc.id)}>Delete</button>
-                </div>
+                {loggedIn && (
+                  <div className="item-actions">
+                    <button onClick={() => setEditing(loc)}>Edit</button>
+                    <button onClick={() => handleToggle(loc.id)}>
+                      {loc.status === 'selling' ? 'Mark Sold' : 'Mark Selling'}
+                    </button>
+                    <button className="btn-danger" onClick={() => handleDelete(loc.id)}>Delete</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </>
+      )}
+      {editing && (
+        <LocationModal
+          lat={editing.lat}
+          lng={editing.lng}
+          existing={editing}
+          onSave={handleEdit}
+          onCancel={() => setEditing(null)}
+        />
       )}
     </div>
   );
