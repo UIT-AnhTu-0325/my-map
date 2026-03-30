@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Deploy to Firebase",
+  "description": "Manually triggered: builds the project then deploys to Firebase Hosting",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run build && npx firebase deploy --only hosting"
+  }
+}

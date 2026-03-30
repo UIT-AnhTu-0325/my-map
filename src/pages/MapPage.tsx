@@ -4,6 +4,7 @@ import L from 'leaflet';
 import type { Location } from '../types';
 import { getLocations, addLocation, updateLocation, deleteLocation } from '../store';
 import { useAuth } from '../AuthContext';
+import { useMapContext } from '../MapContext';
 import LocationModal from '../components/LocationModal';
 import LocationPopup from '../components/LocationPopup';
 import 'leaflet/dist/leaflet.css';
@@ -63,6 +64,12 @@ function MapEvents({ onClick }: { onClick: (lat: number, lng: number) => void })
   return null;
 }
 
+function MapRefCapture({ setMap }: { setMap: (map: L.Map) => void }) {
+  const map = useMap();
+  useEffect(() => { setMap(map); }, [map, setMap]);
+  return null;
+}
+
 function InitialView({ locations }: { locations: Location[] }) {
   const map = useMap();
   const [initialized, setInitialized] = useState(false);
@@ -104,7 +111,7 @@ function InitialView({ locations }: { locations: Location[] }) {
 
 export default function MapPage() {
   const { loggedIn } = useAuth();
-  const [locations, setLocations] = useState<Location[]>([]);
+  const { markerRefs, locations, setLocations, setMap } = useMapContext();
   const [pendingClick, setPendingClick] = useState<{ lat: number; lng: number } | null>(null);
   const [editing, setEditing] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,7 +120,7 @@ export default function MapPage() {
     const data = await getLocations();
     setLocations(data);
     setLoading(false);
-  }, []);
+  }, [setLocations]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -156,9 +163,10 @@ export default function MapPage() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapEvents onClick={handleMapClick} />
+        <MapRefCapture setMap={setMap} />
         {!loading && <InitialView locations={locations} />}
         {locations.map(loc => (
-          <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={loc.status === 'sold' ? soldIcon : new L.Icon.Default()}>
+          <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={loc.status === 'sold' ? soldIcon : new L.Icon.Default()} ref={(ref) => { if (ref) markerRefs.current[loc.id] = ref; }}>
             <Popup>
               <LocationPopup
                 location={loc}
