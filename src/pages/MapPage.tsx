@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { useLocation as useRouterLocation } from 'react-router-dom';
 import L from 'leaflet';
 import type { Location } from '../types';
 import { getLocations, addLocation, updateLocation, deleteLocation } from '../store';
@@ -97,10 +98,11 @@ function InitialView({ locations }: { locations: Location[] }) {
 
 export default function MapPage() {
   const { loggedIn } = useAuth();
-  const { markerRefs, locations, setLocations, setMap } = useMapContext();
+  const { markerRefs, locations, setLocations, setMap, mapRef } = useMapContext();
   const [pendingClick, setPendingClick] = useState<{ lat: number; lng: number } | null>(null);
   const [editing, setEditing] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
+  const routerLocation = useRouterLocation();
 
   const refresh = useCallback(async () => {
     const data = await getLocations();
@@ -109,6 +111,22 @@ export default function MapPage() {
   }, [setLocations]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  // Handle "view on map" from Dashboard
+  useEffect(() => {
+    const state = routerLocation.state as { focusId?: string } | null;
+    if (!state?.focusId || loading) return;
+    const loc = locations.find(l => l.id === state.focusId);
+    if (!loc) return;
+    // Small delay to let map + markers render
+    setTimeout(() => {
+      mapRef.current?.flyTo([loc.lat, loc.lng], 18);
+      const marker = markerRefs.current[state.focusId!];
+      if (marker) setTimeout(() => marker.openPopup(), 600);
+    }, 100);
+    // Clear state so it doesn't re-trigger
+    window.history.replaceState({}, '');
+  }, [routerLocation.state, loading, locations, mapRef, markerRefs]);
 
   const handleMapClick = (lat: number, lng: number) => {
     if (loggedIn) setPendingClick({ lat, lng });

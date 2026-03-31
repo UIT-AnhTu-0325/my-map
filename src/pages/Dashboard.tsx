@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Location } from '../types';
 import { getLocations, updateLocation, deleteLocation } from '../store';
 import { useAuth } from '../AuthContext';
@@ -8,6 +9,7 @@ import LocationModal from '../components/LocationModal';
 export default function Dashboard() {
   const { loggedIn } = useAuth();
   const masked = !loggedIn;
+  const navigate = useNavigate();
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [filter, setFilter] = useState<'all' | 'selling' | 'sold'>('all');
@@ -110,6 +112,7 @@ export default function Dashboard() {
                   {loc.description && <p className="desc">{loc.description}</p>}
                   <span className={`status-badge ${loc.status}`}>{loc.status === 'selling' ? 'Đang bán' : 'Đã bán'}</span>
                   <div className="popup-links">
+                    <button type="button" className="link-btn map-view" onClick={() => navigate('/', { state: { focusId: loc.id } })}>📍 Xem bản đồ</button>
                     {loc.tiktokUrl && (
                       <a href={loc.tiktokUrl} target="_blank" rel="noopener noreferrer" className="link-btn tiktok">🎵 TikTok</a>
                     )}

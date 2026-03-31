@@ -127,6 +127,8 @@
 .link-btn.tiktok:hover { background: linear-gradient(135deg, #25f4ee, #fe2c55); }
 .link-btn.gmaps { background: linear-gradient(135deg, #4285f4, #34a853); }
 .link-btn.gmaps:hover { background: linear-gradient(135deg, #3367d6, #2d9248); }
+.link-btn.map-view { background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; }
+.link-btn.map-view:hover { background: linear-gradient(135deg, #5a4bd1, #8b83f7); }
 .popup-actions button { font-size: 0.75rem; padding: 0.3rem 0.5rem; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: #f8f8f8; color: #333; }
 .popup-actions .btn-danger { background: #e74c3c; color: #fff; border-color: #e74c3c; }
 .popup-actions .btn-danger:hover { background: #c0392b; }
