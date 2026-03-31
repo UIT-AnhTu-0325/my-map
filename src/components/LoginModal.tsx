@@ -20,7 +20,7 @@ export default function LoginModal({ onClose }: Props) {
     if (ok) {
       onClose();
     } else {
-      setError('Wrong username or password');
+      setError('Sai tên đăng nhập hoặc mật khẩu');
     }
     setLoading(false);
   };
@@ -28,20 +28,20 @@ export default function LoginModal({ onClose }: Props) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Login</h2>
+        <h2>Đăng nhập</h2>
         <form onSubmit={handleSubmit}>
           <label>
-            Username
+            Tên đăng nhập
             <input value={username} onChange={e => setUsername(e.target.value)} required />
           </label>
           <label>
-            Password
+            Mật khẩu
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
           </label>
           {error && <p className="error-text">{error}</p>}
           <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-secondary" disabled={loading}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
+            <button type="button" onClick={onClose} className="btn-secondary" disabled={loading}>Hủy</button>
+            <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}</button>
           </div>
         </form>
       </div>

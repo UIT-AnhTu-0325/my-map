@@ -1,19 +1,28 @@
 /**
- * Format price with commas and "tỷ đồng" unit.
- * If masked, show only first 2 digits, rest replaced with 'x'.
- * e.g. 7000 → "7,000 tỷ đồng" (full) or "7,0xx tỷ đồng" (masked)
+ * Format price for display with "tỷ" unit.
+ * Users input in tỷ units (e.g. 2.58 = 2.58 tỷ).
+ * If masked, partially hide the price.
  */
 export function formatPrice(price: number, masked: boolean): string {
-  const str = Math.floor(price).toString();
-
-  if (masked && str.length > 2) {
-    const visible = str.slice(0, 2);
-    const hidden = 'x'.repeat(str.length - 2);
-    const raw = visible + hidden;
-    return addDots(raw) + ' tỷ';
+  if (masked) {
+    const str = price.toString();
+    // Show first 2 chars, mask the rest
+    if (str.length > 2) {
+      const visible = str.slice(0, 2);
+      const hidden = str.slice(2).replace(/[0-9]/g, 'x');
+      return visible + hidden + ' tỷ';
+    }
+    return str + ' tỷ';
   }
 
-  return addDots(str) + ' tỷ';
+  // Format: keep decimals, use dot as thousand separator for integer part
+  const parts = price.toString().split('.');
+  const intPart = addDots(parts[0]);
+  const decPart = parts[1];
+  if (decPart) {
+    return intPart + ',' + decPart + ' tỷ';
+  }
+  return intPart + ' tỷ';
 }
 
 function addDots(s: string): string {

@@ -20,12 +20,15 @@ export async function getLocations(): Promise<Location[]> {
 }
 
 export async function addLocation(location: Omit<Location, 'id'>): Promise<string> {
-  const docRef = await addDoc(collection(db, COLLECTION), location);
+  // Strip undefined values — Firestore rejects them
+  const clean = Object.fromEntries(Object.entries(location).filter(([, v]) => v !== undefined));
+  const docRef = await addDoc(collection(db, COLLECTION), clean);
   return docRef.id;
 }
 
 export async function updateLocation(id: string, updates: Partial<Location>): Promise<void> {
-  await updateDoc(doc(db, COLLECTION, id), updates);
+  const clean = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
+  await updateDoc(doc(db, COLLECTION, id), clean);
 }
 
 export async function deleteLocation(id: string): Promise<void> {

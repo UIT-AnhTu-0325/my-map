@@ -5,34 +5,20 @@ import type { Location } from '../types';
 import { getLocations, addLocation, updateLocation, deleteLocation } from '../store';
 import { useAuth } from '../AuthContext';
 import { useMapContext } from '../MapContext';
+import { formatPrice } from '../utils';
 import LocationModal from '../components/LocationModal';
 import LocationPopup from '../components/LocationPopup';
 import 'leaflet/dist/leaflet.css';
 
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
-
-const soldIcon = new L.Icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-  className: 'sold-marker',
 });
 
 const MAP_VIEW_KEY = 'my-map-view';
-const DEFAULT_CENTER: [number, number] = [10.8231, 106.6297];
+const DEFAULT_CENTER: [number, number] = [12.2388, 109.1967]; // Nha Trang
 const DEFAULT_ZOOM = 13;
 
 function getSavedView(): { center: [number, number]; zoom: number } | null {
@@ -165,18 +151,29 @@ export default function MapPage() {
         <MapEvents onClick={handleMapClick} />
         <MapRefCapture setMap={setMap} />
         {!loading && <InitialView locations={locations} />}
-        {locations.map(loc => (
-          <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={loc.status === 'sold' ? soldIcon : new L.Icon.Default()} ref={(ref) => { if (ref) markerRefs.current[loc.id] = ref; }}>
-            <Popup>
-              <LocationPopup
-                location={loc}
-                onEdit={setEditing}
-                onToggleStatus={handleToggleStatus}
-                onDelete={handleDelete}
-              />
-            </Popup>
-          </Marker>
-        ))}
+        {locations.map(loc => {
+          const label = formatPrice(loc.price, false);
+          const isSold = loc.status === 'sold';
+          const priceIcon = L.divIcon({
+            className: 'price-marker' + (isSold ? ' price-marker-sold' : ''),
+            html: `<div class="price-label">${label}</div>`,
+            iconSize: [80, 30],
+            iconAnchor: [40, 30],
+            popupAnchor: [0, -30],
+          });
+          return (
+            <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={priceIcon} ref={(ref) => { if (ref) markerRefs.current[loc.id] = ref; }}>
+              <Popup>
+                <LocationPopup
+                  location={loc}
+                  onEdit={setEditing}
+                  onToggleStatus={handleToggleStatus}
+                  onDelete={handleDelete}
+                />
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
       {pendingClick && (
         <LocationModal

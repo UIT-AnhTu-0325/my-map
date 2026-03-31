@@ -51,26 +51,26 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      <h1>Dashboard</h1>
-      {loading ? <p>Loading...</p> : (
+      <h1>Tổng quan</h1>
+      {loading ? <p>Đang tải...</p> : (
         <>
           <div className="stats-grid">
             <div className="stat-card">
-              <span className="stat-label">Total Items</span>
+              <span className="stat-label">Tổng số</span>
               <span className="stat-value">{locations.length}</span>
             </div>
             <div className="stat-card selling">
-              <span className="stat-label">Selling</span>
+              <span className="stat-label">Đang bán</span>
               <span className="stat-value">{selling.length}</span>
               <span className="stat-sub">{formatPrice(totalListing, masked)}</span>
             </div>
             <div className="stat-card sold">
-              <span className="stat-label">Sold</span>
+              <span className="stat-label">Đã bán</span>
               <span className="stat-value">{sold.length}</span>
               <span className="stat-sub">{formatPrice(totalRevenue, masked)}</span>
             </div>
             <div className="stat-card revenue">
-              <span className="stat-label">Revenue</span>
+              <span className="stat-label">Doanh thu</span>
               <span className="stat-value">{formatPrice(totalRevenue, masked)}</span>
             </div>
           </div>
@@ -78,21 +78,37 @@ export default function Dashboard() {
           <div className="filter-bar">
             {(['all', 'selling', 'sold'] as const).map(f => (
               <button key={f} className={filter === f ? 'active' : ''} onClick={() => setFilter(f)}>
-                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'all' ? 'Tất cả' : f === 'selling' ? 'Đang bán' : 'Đã bán'}
               </button>
             ))}
           </div>
 
           <div className="items-list">
-            {filtered.length === 0 && <p className="empty">No items yet. Go to the map to add locations.</p>}
+            {filtered.length === 0 && <p className="empty">Chưa có mục nào. Vào bản đồ để thêm địa điểm.</p>}
             {filtered.map(loc => (
               <div key={loc.id} className="item-card">
                 {loc.imageUrl && <img src={loc.imageUrl} alt={loc.title} />}
                 <div className="item-info">
                   <h3>{loc.title}</h3>
                   <p className="price">{formatPrice(loc.price, masked)}</p>
+                  {loc.address && <p className="address">📍 {loc.address}</p>}
+                  {(loc.landArea || loc.floorArea || loc.bedrooms || loc.bathrooms || loc.floors || loc.frontWidth) && (
+                    <div className="property-specs">
+                      {loc.landArea && <span>🏠 {loc.landArea}m²</span>}
+                      {loc.floorArea && <span>📐 {loc.floorArea}m² sàn</span>}
+                      {loc.frontWidth && <span>↔️ {loc.frontWidth}m ngang</span>}
+                      {loc.floors && <span>🏗️ {loc.floors} tầng</span>}
+                      {loc.bedrooms && <span>🛏️ {loc.bedrooms} PN</span>}
+                      {loc.bathrooms && <span>🚿 {loc.bathrooms} WC</span>}
+                    </div>
+                  )}
+                  {loc.features && loc.features.length > 0 && (
+                    <div className="property-features">
+                      {loc.features.map((f, i) => <span key={i} className="feature-tag">{f}</span>)}
+                    </div>
+                  )}
                   {loc.description && <p className="desc">{loc.description}</p>}
-                  <span className={`status-badge ${loc.status}`}>{loc.status}</span>
+                  <span className={`status-badge ${loc.status}`}>{loc.status === 'selling' ? 'Đang bán' : 'Đã bán'}</span>
                   <div className="popup-links">
                     {loc.tiktokUrl && (
                       <a href={loc.tiktokUrl} target="_blank" rel="noopener noreferrer" className="link-btn tiktok">🎵 TikTok</a>
@@ -102,11 +118,11 @@ export default function Dashboard() {
                 </div>
                 {loggedIn && (
                   <div className="item-actions">
-                    <button onClick={() => setEditing(loc)}>Edit</button>
+                    <button onClick={() => setEditing(loc)}>Sửa</button>
                     <button onClick={() => handleToggle(loc.id)}>
-                      {loc.status === 'selling' ? 'Mark Sold' : 'Mark Selling'}
+                      {loc.status === 'selling' ? 'Đã bán' : 'Đang bán'}
                     </button>
-                    <button className="btn-danger" onClick={() => handleDelete(loc.id)}>Delete</button>
+                    <button className="btn-danger" onClick={() => handleDelete(loc.id)}>Xóa</button>
                   </div>
                 )}
               </div>

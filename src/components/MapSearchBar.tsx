@@ -122,7 +122,7 @@ export default function MapSearchBar({ locations, markerRefs, mapRef }: MapSearc
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="Search locations or paste coordinates..."
+          placeholder="Tìm kiếm địa điểm hoặc dán tọa độ..."
           className="search-input"
         />
       </div>
@@ -131,13 +131,13 @@ export default function MapSearchBar({ locations, markerRefs, mapRef }: MapSearc
         <div className="search-results">
           {parsed.type === 'coordinate' && (
             <button type="button" className="search-result-item coordinate-result" onClick={() => handleCoordinateSelect(parsed.lat, parsed.lng)}>
-              <span className="result-title">Go to {parsed.lat}, {parsed.lng}</span>
+              <span className="result-title">Đi tới {parsed.lat}, {parsed.lng}</span>
             </button>
           )}
 
           {filteredLocations.length > 0 && (
             <>
-              <div className="search-section-label">Saved locations</div>
+              <div className="search-section-label">Địa điểm đã lưu</div>
               {filteredLocations.map((loc) => (
                 <button type="button" key={loc.id} className="search-result-item" onClick={() => handleLocationSelect(loc)}>
                   <span className="result-title">{loc.title}</span>
@@ -150,7 +150,7 @@ export default function MapSearchBar({ locations, markerRefs, mapRef }: MapSearc
 
           {geoResults.length > 0 && (
             <>
-              <div className="search-section-label">Search the map</div>
+              <div className="search-section-label">Tìm trên bản đồ</div>
               {geoResults.map((r, i) => (
                 <button type="button" key={i} className="search-result-item geo-result" onClick={() => handleGeoSelect(r)}>
                   <span className="result-title">{truncate(r.name, 80)}</span>
@@ -159,7 +159,7 @@ export default function MapSearchBar({ locations, markerRefs, mapRef }: MapSearc
             </>
           )}
 
-          {showNoResults && <div className="search-no-results">No locations found</div>}
+          {showNoResults && <div className="search-no-results">Không tìm thấy địa điểm</div>}
         </div>
       )}
     </div>
