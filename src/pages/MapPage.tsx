@@ -1,37 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { useLocation as useRouterLocation } from 'react-router-dom';
 import L from 'leaflet';
 import type { Location } from '../types';
 import { getLocations, addLocation, updateLocation, deleteLocation } from '../store';
 import { useAuth } from '../AuthContext';
+import { useMapContext } from '../MapContext';
+import { formatPrice } from '../utils';
 import LocationModal from '../components/LocationModal';
 import LocationPopup from '../components/LocationPopup';
 import 'leaflet/dist/leaflet.css';
 
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
-
-const soldIcon = new L.Icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-  className: 'sold-marker',
 });
 
 const MAP_VIEW_KEY = 'my-map-view';
-const DEFAULT_CENTER: [number, number] = [10.8231, 106.6297];
+const DEFAULT_CENTER: [number, number] = [12.2388, 109.1967]; // Nha Trang
 const DEFAULT_ZOOM = 13;
 
 function getSavedView(): { center: [number, number]; zoom: number } | null {
@@ -60,6 +48,12 @@ function MapEvents({ onClick }: { onClick: (lat: number, lng: number) => void })
       saveView([c.lat, c.lng], map.getZoom());
     },
   });
+  return null;
+}
+
+function MapRefCapture({ setMap }: { setMap: (map: L.Map) => void }) {
+  const map = useMap();
+  useEffect(() => { setMap(map); }, [map, setMap]);
   return null;
 }
 
@@ -104,18 +98,35 @@ function InitialView({ locations }: { locations: Location[] }) {
 
 export default function MapPage() {
   const { loggedIn } = useAuth();
-  const [locations, setLocations] = useState<Location[]>([]);
+  const { markerRefs, locations, setLocations, setMap, mapRef } = useMapContext();
   const [pendingClick, setPendingClick] = useState<{ lat: number; lng: number } | null>(null);
   const [editing, setEditing] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
+  const routerLocation = useRouterLocation();
 
   const refresh = useCallback(async () => {
     const data = await getLocations();
     setLocations(data);
     setLoading(false);
-  }, []);
+  }, [setLocations]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  // Handle "view on map" from Dashboard
+  useEffect(() => {
+    const state = routerLocation.state as { focusId?: string } | null;
+    if (!state?.focusId || loading) return;
+    const loc = locations.find(l => l.id === state.focusId);
+    if (!loc) return;
+    // Small delay to let map + markers render
+    setTimeout(() => {
+      mapRef.current?.flyTo([loc.lat, loc.lng], 18);
+      const marker = markerRefs.current[state.focusId!];
+      if (marker) setTimeout(() => marker.openPopup(), 600);
+    }, 100);
+    // Clear state so it doesn't re-trigger
+    window.history.replaceState({}, '');
+  }, [routerLocation.state, loading, locations, mapRef, markerRefs]);
 
   const handleMapClick = (lat: number, lng: number) => {
     if (loggedIn) setPendingClick({ lat, lng });
@@ -156,19 +167,31 @@ export default function MapPage() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapEvents onClick={handleMapClick} />
+        <MapRefCapture setMap={setMap} />
         {!loading && <InitialView locations={locations} />}
-        {locations.map(loc => (
-          <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={loc.status === 'sold' ? soldIcon : new L.Icon.Default()}>
-            <Popup>
-              <LocationPopup
-                location={loc}
-                onEdit={setEditing}
-                onToggleStatus={handleToggleStatus}
-                onDelete={handleDelete}
-              />
-            </Popup>
-          </Marker>
-        ))}
+        {locations.map(loc => {
+          const label = formatPrice(loc.price, false);
+          const isSold = loc.status === 'sold';
+          const priceIcon = L.divIcon({
+            className: 'price-marker' + (isSold ? ' price-marker-sold' : ''),
+            html: `<div class="price-label">${label}</div>`,
+            iconSize: [80, 30],
+            iconAnchor: [40, 30],
+            popupAnchor: [0, -30],
+          });
+          return (
+            <Marker key={loc.id} position={[loc.lat, loc.lng]} icon={priceIcon} ref={(ref) => { if (ref) markerRefs.current[loc.id] = ref; }}>
+              <Popup>
+                <LocationPopup
+                  location={loc}
+                  onEdit={setEditing}
+                  onToggleStatus={handleToggleStatus}
+                  onDelete={handleDelete}
+                />
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
       {pendingClick && (
         <LocationModal
